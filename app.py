@@ -23,10 +23,10 @@ class_names = [
 
 # 图片预处理函数
 def preprocess_image(image: Image.Image):
-    image = image.convert("RGB")
-    image = ImageOps.fit(image, (224, 224))
-    img_array = np.array(image) / 255.0
-    return np.expand_dims(img_array, axis=0)
+    image = image.convert("RGB")                            # 保证是彩色图像
+    image = ImageOps.fit(image, (64, 64))                   # 改为 64×64（不是 224×224）
+    img_array = np.array(image).astype(np.float32) / 255.0  # 归一化
+    return np.expand_dims(img_array, axis=0)                # 变成 (1, 64, 64, 3)
 
 # ✅ 页面 UI
 st.title("✋ 美国手语识别系统")
