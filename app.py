@@ -1,47 +1,68 @@
 import streamlit as st
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ExifTags
 import numpy as np
 import tensorflow as tf
 import os
 
-# ✅ 这句必须放在所有 st.xxx() 之前
+# ✅ 必须最前面设置页面
 st.set_page_config(page_title="手语识别系统", page_icon="🤟")
 
-# ===== 模型加载函数 =====
+# ✅ 修正上传图像的方向
+def correct_image_orientation(image):
+    try:
+        for orientation in ExifTags.TAGS:
+            if ExifTags.TAGS[orientation] == 'Orientation':
+                break
+        exif = image._getexif()
+        if exif is not None:
+            orientation = exif.get(orientation)
+            if orientation == 3:
+                image = image.rotate(180, expand=True)
+            elif orientation == 6:
+                image = image.rotate(270, expand=True)
+            elif orientation == 8:
+                image = image.rotate(90, expand=True)
+    except Exception:
+        pass
+    return image
+
+# ✅ 图像预处理，匹配模型输入 (64, 64, 3)
+def preprocess_image(image: Image.Image):
+    image = correct_image_orientation(image)
+    image = image.convert("RGB")
+    image = ImageOps.fit(image, (64, 64))
+    img_array = np.array(image).astype(np.float32) / 255.0
+    return np.expand_dims(img_array, axis=0)
+
+# ✅ 加载模型，只加载一次
 @st.cache_resource
 def load_model():
     return tf.keras.models.load_model("asl_cnn_model.h5")
 
 model = load_model()
 
-# 识别类别
+# ✅ 类别标签
 class_names = [
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
     'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
     'U', 'V', 'W', 'X', 'Y', 'Z', 'del', 'nothing', 'space'
 ]
 
-# 图片预处理函数
-def preprocess_image(image: Image.Image):
-    image = image.convert("RGB")                            # 保证是彩色图像
-    image = ImageOps.fit(image, (64, 64))                   # 改为 64×64（不是 224×224）
-    img_array = np.array(image).astype(np.float32) / 255.0  # 归一化
-    return np.expand_dims(img_array, axis=0)                # 变成 (1, 64, 64, 3)
-
-# ✅ 页面 UI
+# ✅ 页面展示
 st.title("✋ 美国手语识别系统")
-st.markdown("请上传一张手语图像，系统将预测代表的字符。")
+st.markdown("请上传一张手语图片，系统将预测出代表的字母。")
 
 uploaded_file = st.file_uploader("📤 上传图像", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
     image = Image.open(uploaded_file)
-    st.image(image, caption="上传图像", use_column_width=True)
+    st.image(image, caption="上传图像", use_container_width=True)
 
-    with st.spinner("识别中..."):
+    with st.spinner("正在识别中..."):
         img_array = preprocess_image(image)
         prediction = model.predict(img_array)[0]
-        pred_class = class_names[np.argmax(prediction)]
-        confidence = np.max(prediction) * 100
+        top_index = np.argmax(prediction)
+        pred_class = class_names[top_index]
+        confidence = prediction[top_index] * 100
 
     st.success(f"✅ 识别结果：**{pred_class}**（置信度：{confidence:.2f}%）")
