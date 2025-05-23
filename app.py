@@ -5,7 +5,7 @@ import tensorflow as tf
 import os
 
 # ✅ 必须最前面设置页面
-st.set_page_config(page_title="手语识别系统", page_icon="🤟")
+st.set_page_config(page_title="Sign language recognition system", page_icon="🤟")
 
 # ✅ 修正上传图像的方向
 def correct_image_orientation(image):
@@ -49,20 +49,20 @@ class_names = [
 ]
 
 # ✅ 页面展示
-st.title("✋ 美国手语识别系统")
-st.markdown("请上传一张手语图片，系统将预测出代表的字母。")
+st.title("✋ Sign language recognition system")
+st.markdown("Please upload a sign language picture and the system will predict the letter it represents.")
 
-uploaded_file = st.file_uploader("📤 上传图像", type=["jpg", "jpeg", "png"])
+uploaded_file = st.file_uploader("📤 Upload an image", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
     image = Image.open(uploaded_file)
-    st.image(image, caption="上传图像", use_container_width=True)
+    st.image(image, caption="Upload an image", use_container_width=True)
 
-    with st.spinner("正在识别中..."):
+    with st.spinner("Identifying..."):
         img_array = preprocess_image(image)
         prediction = model.predict(img_array)[0]
         top_index = np.argmax(prediction)
         pred_class = class_names[top_index]
         confidence = prediction[top_index] * 100
 
-    st.success(f"✅ 识别结果：**{pred_class}**（置信度：{confidence:.2f}%）")
+    st.success(f"✅ Identification results：**{pred_class}**（Confidence：{confidence:.2f}%）")
