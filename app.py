@@ -5,7 +5,7 @@ import tensorflow as tf
 import os
 
 # ✅ 必须最前面设置页面
-st.set_page_config(page_title="Sign language recognition system", page_icon="🤟")
+st.set_page_config(page_title="Sign Language Recognition System", page_icon="🤟")
 
 # ✅ 修正上传图像的方向
 def correct_image_orientation(image):
@@ -49,7 +49,7 @@ class_names = [
 ]
 
 # ✅ 页面展示
-st.title("✋ Sign language recognition system")
+st.title("✋ Sign Language Recognition System")
 st.markdown("Please upload a sign language picture and the system will predict the letter it represents.")
 
 uploaded_file = st.file_uploader("📤 Upload an image", type=["jpg", "jpeg", "png"])
